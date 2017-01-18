@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 ##############################################################################
 # Attempting to use python3 instead of 2.7.
@@ -151,8 +151,10 @@ for line in ifile:
     #        print('[*] alert log: %s') % line.strip()
     #        ofile.write(line.strip())
 
-    #print('[ ]')
     ofile.write('\n')
+
+ifile.close()
+ofile.close()
 
 # Try dumping the data read from ifile to JSON format.
 #json.dump(ofile, ifile)
