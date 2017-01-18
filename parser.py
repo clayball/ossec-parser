@@ -71,15 +71,13 @@ for line in ifile:
     if timestamp.match(line):
         linematched = 1
         length = len(line)
-        #m = timestamp.match(line)
-        #print('[+] matched line: %s') % line
         ts = ''
         i = 9
-        while i <= 28:
+        while line[i] != ':':
             ts = ts + line[i]
             i += 1
         print('[*] ts: %s') % ts
-        i = 33
+        i = i + 4
         agroups = ''
         while i < length:
             agroups = agroups + line[i]
@@ -91,20 +89,21 @@ for line in ifile:
         i = 22
         hname = ''
         while line[i] != ')':
+            if line[i] != '-':
+                break
             hname = hname + line[i]
             i += 1
         print('[*] hostname: %s') % hname
 
     if ruleid.match(line):
         linematched = 1
-        id = line[6] + line[7] + line[8] + line[9] + line[10]
-        i = 0
-        if line[11].isdigit():
-            id = id + line[11]
-            i = 20
-        else:
-            i = 18
-        print('[*] rule: %d') % int(id)
+        i = 6
+        id = ''
+        while line[i] != '(':
+            id = id + line[i]
+            i += 1
+        i += 6
+        print('[*] rule: %s') % id
         level = ''
         while line[i] != ')':
             level = level + line[i]
@@ -138,12 +137,15 @@ for line in ifile:
             i += 1
         print('[*] username: %s') % username.strip()
 
-    if linematched == 0:
-        if len(line) > 1:
-            # This must be the alert log line
-            linematched = 1
-            print('[*] alert log: %s') % line.strip()
-            print('[ ]')
+    # We need to handle atomic (single log) and composite (multiple logs)
+    # rules.
+    #if linematched == 0:
+    #    if len(line) > 1:
+    #        # This must be the alert log line
+    #        linematched = 1
+    #        print('[*] alert log: %s') % line.strip()
+    #        print('[ ]')
+    print('[ ]')
 
 # Try dumping the data read from ifile to JSON format.
 #json.dump(ofile, ifile)
