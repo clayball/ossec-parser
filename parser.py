@@ -19,7 +19,7 @@ except:
     print('[-] ERROR: no file provided')
     exit()
 
-ofile = 'alerts.csv'
+ofile = infile + '.csv'
 
 print('[*] reading %s') % infile
 
