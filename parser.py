@@ -19,7 +19,7 @@ except:
     print('[-] ERROR: no file provided')
     exit()
 
-ofile = 'alerts.json'
+ofile = 'alerts.csv'
 
 print('[*] reading %s') % infile
 
@@ -32,7 +32,7 @@ try:
 except IOError:
     print('[-] ERROR: unable to open file.')
 
-#ofile = open(ofile, 'w')
+ofile = open(ofile, 'w')
 
 # Read each line and display is relative parts
 for line in ifile:
@@ -48,14 +48,8 @@ for line in ifile:
     line 3: Rule id (level num) -> 'Description'
     ----
     We want the following fields
-    - timestamp
-    - groups
-    - hostname
-    - rule id
-    - alert level
-    - src ip (if available)
-    - user (if available)
-    - description
+    - timestamp, groups, hostname, rule id, alert level, src ip (if available)
+    - user (if available), description
     '''
 
     # Patterns to match
@@ -83,17 +77,22 @@ for line in ifile:
             agroups = agroups + line[i]
             i += 1
         print('[*] alert groups: %s') % agroups.strip()
+        ofile.write(ts + '\n' + agroups.strip())
 
     if hostname.match(line):
         linematched = 1
+        length = len(line) - 1
         i = 22
         hname = ''
         while line[i] != ')':
-            if line[i] != '-':
-                break
             hname = hname + line[i]
+            if hname == 'infosec': break
             i += 1
+            if i == length:
+                break
         print('[*] hostname: %s') % hname
+        if len(hname) > 1:
+            ofile.write(hname)
 
     if ruleid.match(line):
         linematched = 1
@@ -116,6 +115,7 @@ for line in ifile:
             description = description + line[i]
             i += 1
         print('[*] description: %s') % description
+        ofile.write(id + '\n' + level.strip() + '\n' + description)
 
     if srcip.match(line):
         linematched = 1
@@ -126,6 +126,7 @@ for line in ifile:
             src = src + line[i]
             i += 1
         print('[*] srcip: %s') % src.strip()
+        ofile.write(src.strip())
 
     if user.match(line):
         linematched = 1
@@ -136,6 +137,9 @@ for line in ifile:
             username = username + line[i]
             i += 1
         print('[*] username: %s') % username.strip()
+        ofile.write(username.strip())
+
+    ofile.write('\n')
 
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules.
