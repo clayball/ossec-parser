@@ -71,7 +71,10 @@ for line in ifile:
             ts = ts + line[i]
             i += 1
         print('[*] ts: %s') % ts
-        i = i + 4
+        i += 1
+        while line[i] != '-':
+            i += 1
+        i += 2
         agroups = ''
         while i < length:
             agroups = agroups + line[i]
@@ -139,17 +142,16 @@ for line in ifile:
         print('[*] username: %s') % username.strip()
         ofile.write(username.strip())
 
-    ofile.write('\n')
-
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules.
-    #if linematched == 0:
-    #    if len(line) > 1:
-    #        # This must be the alert log line
-    #        linematched = 1
-    #        print('[*] alert log: %s') % line.strip()
-    #        print('[ ]')
-    print('[ ]')
+    if linematched == 0:
+        if len(line) > 1:
+            # This must be the alert log line
+            print('[*] alert log: %s') % line.strip()
+            ofile.write(line.strip())
+
+    #print('[ ]')
+    ofile.write('\n')
 
 # Try dumping the data read from ifile to JSON format.
 #json.dump(ofile, ifile)
