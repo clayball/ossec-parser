@@ -144,11 +144,12 @@ for line in ifile:
 
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules.
-    if linematched == 0:
-        if len(line) > 1:
-            # This must be the alert log line
-            print('[*] alert log: %s') % line.strip()
-            ofile.write(line.strip())
+    # Leaving this out to save space.
+    #if linematched == 0:
+    #    if len(line) > 1:
+    #        # This must be the alert log line
+    #        print('[*] alert log: %s') % line.strip()
+    #        ofile.write(line.strip())
 
     #print('[ ]')
     ofile.write('\n')
