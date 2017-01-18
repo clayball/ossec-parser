@@ -80,7 +80,7 @@ for line in ifile:
             agroups = agroups + line[i]
             i += 1
         print('[*] alert groups: %s') % agroups.strip()
-        ofile.write(ts + '\n' + agroups.strip())
+        ofile.write('timestamp: ' + ts + '\n' + 'groups: ' + agroups.strip())
 
     if hostname.match(line):
         linematched = 1
@@ -95,7 +95,7 @@ for line in ifile:
                 break
         print('[*] hostname: %s') % hname
         if len(hname) > 1:
-            ofile.write(hname)
+            ofile.write('hostname: ' + hname)
 
     if ruleid.match(line):
         linematched = 1
@@ -118,7 +118,7 @@ for line in ifile:
             description = description + line[i]
             i += 1
         print('[*] description: %s') % description
-        ofile.write(id + '\n' + level.strip() + '\n' + description)
+        ofile.write('rule_id: ' + id + '\n' + 'level: ' + level.strip() + '\n' + 'description: ' + description)
 
     if srcip.match(line):
         linematched = 1
@@ -129,7 +129,7 @@ for line in ifile:
             src = src + line[i]
             i += 1
         print('[*] srcip: %s') % src.strip()
-        ofile.write(src.strip())
+        ofile.write('src_ip: ' + src.strip())
 
     if user.match(line):
         linematched = 1
@@ -140,7 +140,7 @@ for line in ifile:
             username = username + line[i]
             i += 1
         print('[*] username: %s') % username.strip()
-        ofile.write(username.strip())
+        ofile.write('user: ' + username.strip())
 
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules.
