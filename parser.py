@@ -34,36 +34,34 @@ except IOError:
 
 ofile = open(ofile, 'w')
 
+'''
+The first 3 lines should always be the same...
+Alert 1459569598.730897765: - syslog,sshd,invalid_login,authentication_failed,
+2016 Apr 01 23:59:58 (dns.sas.upenn.edu) 128.91.234.198->/var/log/secure
+Rule: 5710 (level 5) -> 'Attempt to login using a non-existent user'
+----
+line 1: timestamp:- group array
+line 2: date time (hostname) ip_address->/path/to/log/file
+line 3: Rule id (level num) -> 'Description'
+----
+We want the following fields
+- timestamp, groups, hostname, rule id, alert level, src ip (if available)
+- user (if available), description
+Note: when OSSEC client is running on the OSSEC server the hostname is not
+      within parens, (). Creating an re for this case, servhostline
+'''
+
+# Patterns to match for each line. Use grouping.
+alertline = re.compile(r"\*\* Alert (\d+.\d+)*: - (\w+.+)")
+hostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ \((\w+.+)\) (\d+.\d+.\d+.\d+)")
+servhostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ (\w+)")
+ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
+srcipline = re.compile(r"Src IP: (\d+.\d+.\d+.\d+)")
+userline = re.compile(r"User: (\w+)")
+
 # Read each line and display is relative parts
 for line in ifile:
-    '''
-    This is messy but it works
-    The first 3 lines should always be the same...
-    Alert 1459569598.730897765: - syslog,sshd,invalid_login,authentication_failed,
-    2016 Apr 01 23:59:58 (dns.sas.upenn.edu) 128.91.234.198->/var/log/secure
-    Rule: 5710 (level 5) -> 'Attempt to login using a non-existent user'
-    ----
-    line 1: timestamp:- group array
-    line 2: date time (hostname) ip_address->/path/to/log/file
-    line 3: Rule id (level num) -> 'Description'
-    ----
-    We want the following fields
-    - timestamp, groups, hostname, rule id, alert level, src ip (if available)
-    - user (if available), description
-    Note: when OSSEC client is running on the OSSEC server the hostname is not
-          within parens, (). Creating an re for this case, servhostline
-    '''
-
-    # Patterns to match for each line. Use grouping.
-    alertline = re.compile(r"\*\* Alert (\d+.\d+)*: - (\w+.+)")
-    hostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ \((\w+.+)\) (\d+.\d+.\d+.\d+)")
-    servhostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ (\w+)")
-    ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
-    srcipline = re.compile(r"Src IP: (\d+.\d+.\d+.\d+)")
-    userline = re.compile(r"User: (\w+)")
-
     linematched = 0  # TODO: determine if we really need this for anything.
-
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
         linematched = 1
@@ -116,7 +114,8 @@ for line in ifile:
     # rules. Leave logs out to save space.
     if linematched == 0:
         if len(line) > 1:
-            # This must be the alert log line (composite alerts have multiple of these)
+            # This must be the alert log line
+            # (composite alerts have multiple of these)
             print '[*] log: %s' % line
         else:
             # Empty line between alerts
