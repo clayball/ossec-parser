@@ -59,8 +59,8 @@ for line in ifile:
     hostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ \((\w+.+)\) (\d+.\d+.\d+.\d+)")
     servhostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ (\w+)")
     ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
-    srcip = re.compile(r"^Src IP: (\d+.\d+.\d+.\d+)")
-    user = re.compile('^User: \w+')
+    srcipline = re.compile(r"Src IP: (\d+.\d+.\d+.\d+)")
+    userline = re.compile(r"User: (\w+)")
 
     linematched = 0  # TODO: determine if we really need this for anything.
 
@@ -71,63 +71,57 @@ for line in ifile:
         ts = match.group(1)
         agroups = match.group(2)  # TODO: this should be an array or a list
         print '[+] timestamp: %s, groups: %s' % (ts, agroups)
-        ofile.write('timestamp: ' + ts + ', ' + 'groups: ' + agroups.strip())
+        ofile.write('timestamp: ' + ts + ', ' + 'groups: ' + agroups + ', ')
 
     if hostline.match(line):
-        linematched = 1
+        linematched += 1
         match = hostline.match(line)
         host = match.group(1)
         ip = match.group(2)
         print '[*] hostname: %s, ip: %s' % (host, ip)
-        ofile.write('host: ' + host + ', ' + 'ip: ' + ip)
+        ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if servhostline.match(line):
-        linematched = 1
+        linematched += 1
         match = servhostline.match(line)
         host = match.group(1)
         ip = '0.0.0.0'
         print '[*] hostname: %s, ip: %s' % (host, ip)
-        ofile.write('host: ' + host + ', ' + 'ip: ' + ip)
+        ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if ruleline.match(line):
-        linematched = 1
+        linematched += 1
         match = ruleline.match(line)
         ruleid = match.group(1)
         level = match.group(2)
         desc = match.group(3)
-        # print to stdout
         print '[*] ruleid: %s, level: %s, desc: %s' % (ruleid, level, desc)
-        # output to file
-        ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc)
+        ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc + ', ')
 
-    if srcip.match(line):
-        linematched = 1
-        match = srcip.match(line)
+    if srcipline.match(line):
+        linematched += 1
+        match = srcipline.match(line)
         src = match.group(1)
         print '[*] srcip: %s' % src
-        ofile.write('src_ip: ' + src)
+        ofile.write('src_ip: ' + src + ', ')
 
-    if user.match(line):
-        linematched = 1
-        length = len(line)
-        i = 6
-        username = ''
-        while i < length:
-            username = username + line[i]
-            i += 1
-        print('[*] username: %s') % username.strip()
-        ofile.write('user: ' + username.strip())
+    if userline.match(line):
+        linematched += 1
+        match = userline.match(line)
+        user = match.group(1)
+        print('[*] user: %s') % user
+        ofile.write('user: ' + user + ', ')
 
     # We need to handle atomic (single log) and composite (multiple logs)
-    # rules.
-    # Leaving this out to save space.
-    #if linematched == 0:
-    #    if len(line) > 1:
-    #        # This must be the alert log line
-    #        print('[*] alert log: %s') % line.strip()
-    #        ofile.write(line.strip())
+    # rules. Leave logs out to save space.
+    if linematched == 0:
+        if len(line) > 1:
+            # This must be the alert log line (composite alerts have multiple of these)
+            print '[*] log: %s' % line
+        else:
+            # Empty line between alerts
+            ofile.write('\n')
 
-    ofile.write('\n')
 
 ifile.close()
 ofile.close()
