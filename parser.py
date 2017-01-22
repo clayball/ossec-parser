@@ -37,7 +37,7 @@ ofile = open(ofile, 'w')
 '''
 The first 3 lines should always be the same...
 Alert 1459569598.730897765: - syslog,sshd,invalid_login,authentication_failed,
-2016 Apr 01 23:59:58 (dns.sas.upenn.edu) 128.91.234.198->/var/log/secure
+2016 Apr 01 23:59:58 (dns.sub.host.edu) 10.10.10.10->/var/log/secure
 Rule: 5710 (level 5) -> 'Attempt to login using a non-existent user'
 ----
 line 1: timestamp:- group array
