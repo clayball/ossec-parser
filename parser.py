@@ -52,35 +52,23 @@ for line in ifile:
     - user (if available), description
     '''
 
-    # Patterns to match
-    timestamp = re.compile('^\*\* Alert \d+.\d+')  # we want the number 10.9, xxxxxxxxxx.xxxxxxxxx
+    # Patterns to match for each line. Use grouping.
     hostname = re.compile('^201\d+ \w+ \d+ \d+:\d+:\d+ ')
+    alertline = re.compile(r"\*\* Alert (\d+.\d+)*: - (\w+.+)")
     ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
     srcip = re.compile('^Src IP: \d+.\d+.\d+.\d+')
     user = re.compile('^User: \w+')
 
-    linematched = 0
+    linematched = 0  # TODO: determine if we really need this for anything.
 
     # Test for matches. A line will have more than one matching RE.
-    if timestamp.match(line):
+    if alertline.match(line):
         linematched = 1
-        length = len(line)
-        ts = ''
-        i = 9
-        while line[i] != ':':
-            ts = ts + line[i]
-            i += 1
-        print('[*] ts: %s') % ts
-        i += 1
-        while line[i] != '-':
-            i += 1
-        i += 2
-        agroups = ''
-        while i < length:
-            agroups = agroups + line[i]
-            i += 1
-        print('[*] alert groups: %s') % agroups.strip()
-        ofile.write('timestamp: ' + ts + '\n' + 'groups: ' + agroups.strip())
+        match = alertline.match(line)  # we're in the if block, no need to try/except
+        ts = match.group(1)
+        agroups = match.group(2)
+        print '[+] timestamp: %s, groups: %s' % (ts, agroups)
+        ofile.write('timestamp: ' + ts + ', ' + 'groups: ' + agroups.strip())
 
     if hostname.match(line):
         linematched = 1
@@ -93,7 +81,7 @@ for line in ifile:
             i += 1
             if i == length:
                 break
-        print('[*] hostname: %s') % hname
+        print '[*] hostname: %s' % hname
         if len(hname) > 1:
             ofile.write('hostname: ' + hname)
 
