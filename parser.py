@@ -50,13 +50,16 @@ for line in ifile:
     We want the following fields
     - timestamp, groups, hostname, rule id, alert level, src ip (if available)
     - user (if available), description
+    Note: when OSSEC client is running on the OSSEC server the hostname is not
+          within parens, (). Creating an re for this case, servhostline
     '''
 
     # Patterns to match for each line. Use grouping.
-    hostname = re.compile('^201\d+ \w+ \d+ \d+:\d+:\d+ ')
     alertline = re.compile(r"\*\* Alert (\d+.\d+)*: - (\w+.+)")
+    hostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ \((\w+.+)\) (\d+.\d+.\d+.\d+)")
+    servhostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ (\w+)")
     ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
-    srcip = re.compile('^Src IP: \d+.\d+.\d+.\d+')
+    srcip = re.compile(r"^Src IP: (\d+.\d+.\d+.\d+)")
     user = re.compile('^User: \w+')
 
     linematched = 0  # TODO: determine if we really need this for anything.
@@ -66,24 +69,25 @@ for line in ifile:
         linematched = 1
         match = alertline.match(line)  # we're in the if block, no need to try/except
         ts = match.group(1)
-        agroups = match.group(2)
+        agroups = match.group(2)  # TODO: this should be an array or a list
         print '[+] timestamp: %s, groups: %s' % (ts, agroups)
         ofile.write('timestamp: ' + ts + ', ' + 'groups: ' + agroups.strip())
 
-    if hostname.match(line):
+    if hostline.match(line):
         linematched = 1
-        length = len(line) - 1
-        i = 22
-        hname = ''
-        while line[i] != ')':
-            hname = hname + line[i]
-            if hname == 'infosec': break
-            i += 1
-            if i == length:
-                break
-        print '[*] hostname: %s' % hname
-        if len(hname) > 1:
-            ofile.write('hostname: ' + hname)
+        match = hostline.match(line)
+        host = match.group(1)
+        ip = match.group(2)
+        print '[*] hostname: %s, ip: %s' % (host, ip)
+        ofile.write('host: ' + host + ', ' + 'ip: ' + ip)
+
+    if servhostline.match(line):
+        linematched = 1
+        match = servhostline.match(line)
+        host = match.group(1)
+        ip = '0.0.0.0'
+        print '[*] hostname: %s, ip: %s' % (host, ip)
+        ofile.write('host: ' + host + ', ' + 'ip: ' + ip)
 
     if ruleline.match(line):
         linematched = 1
@@ -92,20 +96,16 @@ for line in ifile:
         level = match.group(2)
         desc = match.group(3)
         # print to stdout
-        print('[*] ruleid: %s, level: %s, desc: %s') % (ruleid, level, desc)
+        print '[*] ruleid: %s, level: %s, desc: %s' % (ruleid, level, desc)
         # output to file
         ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc)
 
     if srcip.match(line):
         linematched = 1
-        length = len(line)
-        i = 8
-        src = ''
-        while i < length:
-            src = src + line[i]
-            i += 1
-        print('[*] srcip: %s') % src.strip()
-        ofile.write('src_ip: ' + src.strip())
+        match = srcip.match(line)
+        src = match.group(1)
+        print '[*] srcip: %s' % src
+        ofile.write('src_ip: ' + src)
 
     if user.match(line):
         linematched = 1
