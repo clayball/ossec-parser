@@ -55,7 +55,7 @@ for line in ifile:
     # Patterns to match
     timestamp = re.compile('^\*\* Alert \d+.\d+')  # we want the number 10.9, xxxxxxxxxx.xxxxxxxxx
     hostname = re.compile('^201\d+ \w+ \d+ \d+:\d+:\d+ ')
-    ruleid = re.compile('^Rule: \d+')  # iterate then grab alert level and description
+    ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
     srcip = re.compile('^Src IP: \d+.\d+.\d+.\d+')
     user = re.compile('^User: \w+')
 
@@ -97,28 +97,35 @@ for line in ifile:
         if len(hname) > 1:
             ofile.write('hostname: ' + hname)
 
-    if ruleid.match(line):
+    if ruleline.match(line):
         linematched = 1
-        i = 6
-        id = ''
-        while line[i] != '(':
-            id = id + line[i]
-            i += 1
-        i += 6
-        print('[*] rule: %s') % id
-        level = ''
-        while line[i] != ')':
-            level = level + line[i]
-            i += 1
-        print('[*] alert level: %s') % level
-        description = ''
-        ## add 6 to i after level
-        i += 6
-        while line[i] != "'":
-            description = description + line[i]
-            i += 1
-        print('[*] description: %s') % description
-        ofile.write('rule_id: ' + id + '\n' + 'level: ' + level.strip() + '\n' + 'description: ' + description)
+        match = ruleline.match(line)
+        ruleid = match.group(1)
+        level = match.group(2)
+        desc = match.group(3)
+
+        print('[*] ruleid: %s, level: %s, desc: %s') % (ruleid, level, desc)
+
+        # i = 6
+        # id = ''
+        # while line[i] != '(':
+        #     id = id + line[i]
+        #     i += 1
+        # i += 6
+        # print('[*] rule: %s') % id
+        # level = ''
+        # while line[i] != ')':
+        #     level = level + line[i]
+        #     i += 1
+        # print('[*] alert level: %s') % level
+        # description = ''
+        # ## add 6 to i after level
+        # i += 6
+        # while line[i] != "'":
+        #     description = description + line[i]
+        #     i += 1
+        # print('[*] description: %s') % description
+        ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc)
 
     if srcip.match(line):
         linematched = 1
