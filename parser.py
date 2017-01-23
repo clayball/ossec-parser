@@ -33,8 +33,8 @@ def initvars ():
     ruleid = None
     level = None
     desc = None
-    src = ''
-    user = ''
+    src = ' '
+    user = ' '
 
 
 # ########## MAIN PROGRAM #########
@@ -71,15 +71,7 @@ srcipline = re.compile(r"Src IP: (\d+.\d+.\d+.\d+)")
 userline = re.compile(r"User: (\w+)")
 
 # Initialize global variables to None
-tstamp = None
-agroups = None  # array/list
-host = None
-ip = None
-ruleid = None
-level = None
-desc = None
-src = ''
-user = ''
+initvars()
 
 # Read each line and display is relative parts
 for line in ifile:
@@ -93,7 +85,7 @@ for line in ifile:
         tstamp = match.group(1)
         agroups = match.group(2)  # TODO: this should be an array or a list
         #print '[*] timestamp: %s, groups: %s' % (tstamp, agroups)
-        ofile.write('timestamp: ' + tstamp + ', ' + 'groups: ' + agroups + ', ')
+        #ofile.write('timestamp: ' + tstamp + ', ' + 'groups: ' + agroups + ', ')
 
     if hostline.match(line):
         linematched += 1
@@ -101,7 +93,7 @@ for line in ifile:
         host = match.group(1)
         ip = match.group(2)
         #print '[*] hostname: %s, ip: %s' % (host, ip)
-        ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
+        #ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if servhostline.match(line):
         linematched += 1
@@ -109,7 +101,7 @@ for line in ifile:
         host = match.group(1)
         ip = '0.0.0.0'
         #print '[*] hostname: %s, ip: %s' % (host, ip)
-        ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
+        #ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if ruleline.match(line):
         linematched += 1
@@ -118,21 +110,21 @@ for line in ifile:
         level = match.group(2)
         desc = match.group(3)
         #print '[*] ruleid: %s, level: %s, desc: %s' % (ruleid, level, desc)
-        ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc + ', ')
+        #ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc + ', ')
 
     if srcipline.match(line):
         linematched += 1
         match = srcipline.match(line)
         src = match.group(1)
         #print '[*] srcip: %s' % src
-        ofile.write('src_ip: ' + src + ', ')
+        #ofile.write('src_ip: ' + src + ', ')
 
     if userline.match(line):
         linematched += 1
         match = userline.match(line)
         user = match.group(1)
         #print('[*] user: %s') % user
-        ofile.write('user: ' + user + ', ')
+        #ofile.write('user: ' + user + ', ')
 
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules. Leave logs out to save space.
@@ -140,13 +132,19 @@ for line in ifile:
         if len(line) > 1:
             # This must be the alert log line
             # (composite alerts have multiple of these)
-            print '[*] log: %s' % line
+            #print '[*] log: %s' % line
+            endalert = 0
         else:
             # Empty line between alerts
-            print '[*] %s, %s, %s, %s, %s, %s, %s, %s, %s' % (tstamp, agroups, host, ip, ruleid, level, desc, src, user)
-            ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups)
-            ofile.write(', rule_id: ' + ruleid + ', level: ' + level)
-            ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
+            # Only print/write alerts greater than level 7
+            print '[*] LEVEL GREATER THAN 7'
+            if int(level) > 7:
+                print '[*] %s, %s, %s, %s, %s, %s, %s, %s, %s' % (tstamp, agroups, host, ip, ruleid, level, desc, src, user)
+                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups)
+                ofile.write(', rule_id: ' + ruleid + ', level: ' + level)
+                ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
+            else:
+                print '[*] alert level <= 7: %s' % level
             endalert = 1
             initvars()
 
