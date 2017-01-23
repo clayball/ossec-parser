@@ -84,24 +84,18 @@ for line in ifile:
         match = alertline.match(line)  # we're in the if block, no need to try/except
         tstamp = match.group(1)
         agroups = match.group(2)  # TODO: this should be an array or a list
-        #print '[*] timestamp: %s, groups: %s' % (tstamp, agroups)
-        #ofile.write('timestamp: ' + tstamp + ', ' + 'groups: ' + agroups + ', ')
 
-    if hostline.match(line):
+    if hostline.match(line):  # TODO: doesn't seem to be working
         linematched += 1
         match = hostline.match(line)
         host = match.group(1)
         ip = match.group(2)
-        #print '[*] hostname: %s, ip: %s' % (host, ip)
-        #ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if servhostline.match(line):
         linematched += 1
         match = servhostline.match(line)
         host = match.group(1)
         ip = '0.0.0.0'
-        #print '[*] hostname: %s, ip: %s' % (host, ip)
-        #ofile.write('host: ' + host + ', ' + 'ip: ' + ip + ', ')
 
     if ruleline.match(line):
         linematched += 1
@@ -109,22 +103,16 @@ for line in ifile:
         ruleid = match.group(1)
         level = match.group(2)
         desc = match.group(3)
-        #print '[*] ruleid: %s, level: %s, desc: %s' % (ruleid, level, desc)
-        #ofile.write('rule_id: ' + ruleid + ', ' + 'level: ' + level + ', ' + 'description: ' + desc + ', ')
 
     if srcipline.match(line):
         linematched += 1
         match = srcipline.match(line)
         src = match.group(1)
-        #print '[*] srcip: %s' % src
-        #ofile.write('src_ip: ' + src + ', ')
 
     if userline.match(line):
         linematched += 1
         match = userline.match(line)
         user = match.group(1)
-        #print('[*] user: %s') % user
-        #ofile.write('user: ' + user + ', ')
 
     # We need to handle atomic (single log) and composite (multiple logs)
     # rules. Leave logs out to save space.
@@ -137,10 +125,10 @@ for line in ifile:
         else:
             # Empty line between alerts
             # Only print/write alerts greater than level 7
-            print '[*] LEVEL GREATER THAN 7'
-            if int(level) > 7:
+            #print '[*] LEVEL GREATER THAN 7'
+            if int(level) > 6:
                 print '[*] %s, %s, %s, %s, %s, %s, %s, %s, %s' % (tstamp, agroups, host, ip, ruleid, level, desc, src, user)
-                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups)
+                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups + ', host: ' + host + ', ip: ' + ip)
                 ofile.write(', rule_id: ' + ruleid + ', level: ' + level)
                 ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
             else:
