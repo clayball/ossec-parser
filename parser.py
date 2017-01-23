@@ -18,6 +18,11 @@ try:
 except:
     print('[-] ERROR: no file provided')
     exit()
+try:
+    levelmin = sys.argv[2]
+except:
+    levelmin = 7
+
 
 ofile = infile + '.csv'
 
@@ -126,13 +131,13 @@ for line in ifile:
             # Empty line between alerts
             # Only print/write alerts greater than level 7
             #print '[*] LEVEL GREATER THAN 7'
-            if int(level) > 6:
+            if int(level) >= int(levelmin):
                 print '[*] %s, %s, %s, %s, %s, %s, %s, %s, %s' % (tstamp, agroups, host, ip, ruleid, level, desc, src, user)
-                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups + ', host: ' + host + ', ip: ' + ip)
-                ofile.write(', rule_id: ' + ruleid + ', level: ' + level)
+                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups + ', host: ' + host)
+                ofile.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
                 ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
             else:
-                print '[*] alert level <= 7: %s' % level
+                print '[*] alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
             initvars()
 
