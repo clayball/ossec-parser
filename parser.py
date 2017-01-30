@@ -2,6 +2,12 @@
 
 ##############################################################################
 # Attempting to use python3 instead of 2.7.
+# - ran into issues with 3.. back to 2
+#
+# OSSEC Parser
+# ============
+# 
+# Clay Wells <cwells at cwells.org>
 #
 # Open an OSSEC alert log, parse it, output to csv format.
 #
