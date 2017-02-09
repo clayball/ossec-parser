@@ -25,7 +25,7 @@ except:
 try:
     levelmin = sys.argv[2]
 except:
-    levelmin = 7
+    levelmin = 3
 
 tstamp = None
 groups = ()
@@ -37,7 +37,8 @@ desc = None
 src = ' '
 user = ' '
 
-ofile = infile + '.csv'
+jsonfile = infile + '.json'
+csvfile = infile + '.csv'
 
 print('[*] reading %s') % infile
 
@@ -61,7 +62,9 @@ try:
 except IOError:
     print('[-] ERROR: unable to open file.')
 
-ofile = open(ofile, 'w')
+jsonfile = open(jsonfile, 'w')
+csvout = open(csvfile, 'w')
+
 
 '''
 The first 3 lines should always be the same...
@@ -103,9 +106,9 @@ for line in ifile:
         match = alertline.match(line)  # we're in the if block, no need to try/except
         tstamp = match.group(1)
         groupstr = match.group(2).rstrip(',')  # TODO: make this a list
-        print '[DEBUG] groupstr: %s' % groupstr
+        #print '[DEBUG] groupstr: %s' % groupstr
         groups = groupstr.split(',')
-        print '[DEBUG] groups: %s, len: %d' % (groups, len(groups))
+        #print '[DEBUG] groups: %s, len: %d' % (groups, len(groups))
 
     if hostline.match(line):  # TODO: doesn't seem to be working
         linematched += 1
@@ -149,10 +152,39 @@ for line in ifile:
             # Only print/write alerts greater than level 7
             #print '[*] LEVEL GREATER THAN 7'
             if int(level) >= int(levelmin):
-                print '[*] %s, %s, %s, %s, %s, %s' % (tstamp, host, ruleid, level, desc, src)
-                ofile.write('tstamp: ' + tstamp + ', groups: ' + groupstr + ', host: ' + host)
-                ofile.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
-                ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
+                print '[alert] %s, %s, %s, %s, %s, %s' % (tstamp, host, ruleid, level, desc, src)
+
+                '''
+                alertencoded = json.JSONEncoder().encode({'timestamp': tstamp,
+                                           'groups': groups,
+                                           'host': host,
+                                           'ipv4': ip,
+                                           'ruleid': ruleid,
+                                           'level': level,
+                                           'description': desc,
+                                           'source_ip': src,
+                                           'user': user
+                                           })
+                '''
+
+                alertdata = [{'timestamp': tstamp, 'groups': groups,
+                                  'host': host, 'ipv4': ip, 'ruleid': ruleid,
+                                  'level': level, 'description': desc,
+                                  'source_ip': src, 'user': user}]
+
+                json.dump(alertdata, jsonfile, sort_keys=False, indent=4, separators=(',', ': '), encoding="utf-8")
+
+                #print json.dumps({'timestamp': tstamp, 'groups': groups,
+                #                  'host': host, 'ipv4': ip, 'ruleid': ruleid,
+                #                  'level': level, 'description': desc,
+                #                  'source_ip': src, 'user': user
+                #                  },
+                #                 sort_keys=False, indent=4, separators=(',', ': '), encoding="utf-8")
+
+                # output to csv file, one alert per line (TODO: make this optional)
+                csvout.write('tstamp: ' + tstamp + ', groups: ' + groupstr + ', host: ' + host)
+                csvout.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
+                csvout.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
             else:
                 print '[*] alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
@@ -160,7 +192,8 @@ for line in ifile:
 
 
 ifile.close()
-ofile.close()
+csvout.close()
+jsonfile.close()
 
 # Try dumping the data read from ifile to JSON format.
 #json.dump(ofile, ifile)
