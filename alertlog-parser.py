@@ -1,14 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
-##############################################################################
+# ############################################################################
 # Attempting to use python3 instead of 2.7.
 # - ran into issues with 3.. back to 2
 #
-# OSSEC Parser
-# ============
+# OSSEC Alert Log Parser
+# ======================
 # 
-# Clay Wells <cwells at cwells.org>
-#
 # Open an OSSEC alert log, parse it, output to csv format.
 #
 
@@ -29,6 +27,15 @@ try:
 except:
     levelmin = 7
 
+tstamp = None
+groups = ()
+host = None
+ip = None
+ruleid = None
+level = None
+desc = None
+src = ' '
+user = ' '
 
 ofile = infile + '.csv'
 
@@ -38,7 +45,7 @@ print('[*] reading %s') % infile
 def initvars ():
     # Initialize variables to None
     tstamp = None
-    agroups = None  # array/list
+    groups = ()
     host = None
     ip = None
     ruleid = None
@@ -86,15 +93,19 @@ initvars()
 
 # Read each line and display is relative parts
 for line in ifile:
-    # TODO: build alert data and then write to file
+    # TODO: output in JSON format.
 
     linematched = 0  # TODO: determine if we really need this for anything.
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
         linematched = 1
+        #groups = ()
         match = alertline.match(line)  # we're in the if block, no need to try/except
         tstamp = match.group(1)
-        agroups = match.group(2)  # TODO: this should be an array or a list
+        groupstr = match.group(2).rstrip(',')  # TODO: make this a list
+        print '[DEBUG] groupstr: %s' % groupstr
+        groups = groupstr.split(',')
+        print '[DEBUG] groups: %s, len: %d' % (groups, len(groups))
 
     if hostline.match(line):  # TODO: doesn't seem to be working
         linematched += 1
@@ -138,8 +149,8 @@ for line in ifile:
             # Only print/write alerts greater than level 7
             #print '[*] LEVEL GREATER THAN 7'
             if int(level) >= int(levelmin):
-                print '[*] %s, %s, %s, %s, %s, %s, %s, %s, %s' % (tstamp, agroups, host, ip, ruleid, level, desc, src, user)
-                ofile.write('tstamp: ' + tstamp + ', groups: ' + agroups + ', host: ' + host)
+                print '[*] %s, %s, %s, %s, %s, %s' % (tstamp, host, ruleid, level, desc, src)
+                ofile.write('tstamp: ' + tstamp + ', groups: ' + groupstr + ', host: ' + host)
                 ofile.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
                 ofile.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
             else:
