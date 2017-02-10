@@ -15,6 +15,11 @@ import os
 import sys
 import re
 import json
+from datetime import datetime, date, time
+
+
+# ######### PARSE ARGS #########
+
 
 # ######### VARIABLES #########
 try:
@@ -27,7 +32,8 @@ try:
 except:
     levelmin = 3
 
-tstamp = None
+datestr = ' '
+timestamp = ' '
 groups = ()
 host = None
 ip = None
@@ -45,7 +51,8 @@ print('[*] reading %s') % infile
 # ######### FUNCTIONS #########
 def initvars ():
     # Initialize variables to None
-    tstamp = None
+    datestr = ' '
+    timestamp = ' '
     groups = ()
     host = None
     ip = None
@@ -90,27 +97,31 @@ servhostline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+ (\w+)")
 ruleline = re.compile(r"Rule: (\d+)* \(level (\d+)\) -> '(\w+.+)'")
 srcipline = re.compile(r"Src IP: (\d+.\d+.\d+.\d+)")
 userline = re.compile(r"User: (\w+)")
+dateline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+")
 
 # Initialize global variables to None
 initvars()
 
 # Read each line and display is relative parts
 for line in ifile:
-    # TODO: output in JSON format.
-
     linematched = 0  # TODO: determine if we really need this for anything.
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
         linematched = 1
-        #groups = ()
         match = alertline.match(line)  # we're in the if block, no need to try/except
-        tstamp = match.group(1)
-        groupstr = match.group(2).rstrip(',')  # TODO: make this a list
+        groupstr = match.group(2).rstrip(',')
         #print '[DEBUG] groupstr: %s' % groupstr
         groups = groupstr.split(',')
         #print '[DEBUG] groups: %s, len: %d' % (groups, len(groups))
 
-    if hostline.match(line):  # TODO: doesn't seem to be working
+    if dateline.match(line):
+        linematched = 1
+        match = dateline.match(line)
+        datestr = match.group(0)
+        timestamp = datetime.strptime(datestr, "%Y %b %d %H:%M:%S")
+        #print '[*] timestamp: %s' % timestamp
+
+    if hostline.match(line):
         linematched += 1
         match = hostline.match(line)
         host = match.group(1)
@@ -145,44 +156,26 @@ for line in ifile:
         if len(line) > 1:
             # This must be the alert log line
             # (composite alerts have multiple of these)
-            #print '[*] log: %s' % line
             endalert = 0
         else:
-            # Empty line between alerts
-            # Only print/write alerts greater than level 7
-            #print '[*] LEVEL GREATER THAN 7'
+            # Only print/write alerts greater than level set above
             if int(level) >= int(levelmin):
-                print '[alert] %s, %s, %s, %s, %s, %s' % (tstamp, host, ruleid, level, desc, src)
+                print '[alert] %s, %s, %s, %s, %s' % \
+                      (str(timestamp), host, ruleid, level, src)
 
-                '''
-                alertencoded = json.JSONEncoder().encode({'timestamp': tstamp,
-                                           'groups': groups,
-                                           'host': host,
-                                           'ipv4': ip,
-                                           'ruleid': ruleid,
-                                           'level': level,
-                                           'description': desc,
-                                           'source_ip': src,
-                                           'user': user
-                                           })
-                '''
+                alertdata = [{'timestamp': str(timestamp),
+                              'groups': groups, 'host': host, 'ipv4': ip,
+                              'ruleid': ruleid, 'level': level,
+                              'description': desc, 'source_ip': src,
+                              'user': user}]
 
-                alertdata = [{'timestamp': tstamp, 'groups': groups,
-                                  'host': host, 'ipv4': ip, 'ruleid': ruleid,
-                                  'level': level, 'description': desc,
-                                  'source_ip': src, 'user': user}]
+                json.dump(alertdata, jsonfile, sort_keys=False, indent=4,
+                          separators=(',', ': '), encoding="utf-8")
 
-                json.dump(alertdata, jsonfile, sort_keys=False, indent=4, separators=(',', ': '), encoding="utf-8")
+                # output to csv file, one alert per line
+                # (TODO: make this optional)
 
-                #print json.dumps({'timestamp': tstamp, 'groups': groups,
-                #                  'host': host, 'ipv4': ip, 'ruleid': ruleid,
-                #                  'level': level, 'description': desc,
-                #                  'source_ip': src, 'user': user
-                #                  },
-                #                 sort_keys=False, indent=4, separators=(',', ': '), encoding="utf-8")
-
-                # output to csv file, one alert per line (TODO: make this optional)
-                csvout.write('tstamp: ' + tstamp + ', groups: ' + groupstr + ', host: ' + host)
+                csvout.write('timestamp: ' + str(timestamp) + ', groups: ' + groupstr + ', host: ' + host)
                 csvout.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
                 csvout.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
             else:
@@ -194,7 +187,3 @@ for line in ifile:
 ifile.close()
 csvout.close()
 jsonfile.close()
-
-# Try dumping the data read from ifile to JSON format.
-#json.dump(ofile, ifile)
-
