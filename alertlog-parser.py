@@ -19,7 +19,7 @@ from datetime import datetime, date, time
 
 
 # ######### PARSE ARGS #########
-
+# TODO: implement this, run on file or directory, min alert level, output csv
 
 # ######### VARIABLES #########
 try:
@@ -43,6 +43,7 @@ desc = None
 src = ' '
 user = ' '
 
+# Name output files same as the input file.
 jsonfile = infile + '.json'
 csvfile = infile + '.csv'
 
@@ -108,18 +109,15 @@ for line in ifile:
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
         linematched = 1
-        match = alertline.match(line)  # we're in the if block, no need to try/except
+        match = alertline.match(line)
         groupstr = match.group(2).rstrip(',')
-        #print '[DEBUG] groupstr: %s' % groupstr
         groups = groupstr.split(',')
-        #print '[DEBUG] groups: %s, len: %d' % (groups, len(groups))
 
     if dateline.match(line):
         linematched = 1
         match = dateline.match(line)
         datestr = match.group(0)
         timestamp = datetime.strptime(datestr, "%Y %b %d %H:%M:%S")
-        #print '[*] timestamp: %s' % timestamp
 
     if hostline.match(line):
         linematched += 1
@@ -175,9 +173,11 @@ for line in ifile:
                 # output to csv file, one alert per line
                 # (TODO: make this optional)
 
-                csvout.write('timestamp: ' + str(timestamp) + ', groups: ' + groupstr + ', host: ' + host)
-                csvout.write(', ip: ' + ip + ', rule_id: ' + ruleid + ', level: ' + level)
-                csvout.write(', desc: ' + desc + ', src: ' + src + ', user: ' + user + '\n')
+                csvout.write('timestamp: ' + str(timestamp) + ', groups: '
+                             + groupstr + ', host: ' + host + ', ip: ' + ip
+                             + ', rule_id: ' + ruleid + ', level: ' + level
+                             + ', desc: ' + desc + ', src: ' + src
+                             + ', user: ' + user + '\n')
             else:
                 print '[*] alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
