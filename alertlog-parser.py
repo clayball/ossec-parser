@@ -16,62 +16,86 @@ import sys
 import re
 import json
 from datetime import datetime, date, time
+import argparse
 
 
 # ######### PARSE ARGS #########
-# TODO: implement this, run on file or directory, min alert level, output csv
+# TODO: implement: run on file or directory, min alert level, output csv
+# Usage: ./program.py -f file | -d directory [-l 8 -o csv|json]
+
+prog = os.path.basename(sys.argv[0])
+
+filearg = ''
+dirarg = ''
+levelmin = 0
+
+argparser = argparse.ArgumentParser(description='Process command-line args.')
+#argparser.add_argument('-f', help='file to parse', dest='filename')
+argparser.add_argument('-f', type=argparse.FileType('r'), help='file to parse', dest='filename')
+argparser.add_argument('-d', help='directory containing alert logs', dest='directory')
+argparser.add_argument('-l', help='minimum alert level', dest='level', type=int, choices=xrange(1, 16))
+
+args = argparser.parse_args()
+
+if args.level:
+    print '[debug] level: %d' % levelmin
+    levelmin = args.level
+else:
+    print '[debug] level not provided.'
+
+if args.filename:
+    filearg = args.filename
+    print '[debug] filename: %s' % filearg
+else:
+    print '[debug] filename not provided.'
 
 # ######### VARIABLES #########
-try:
-    infile = sys.argv[1]
-except:
-    print('[-] ERROR: no file provided')
-    exit()
-try:
-    levelmin = sys.argv[2]
-except:
-    levelmin = 3
-
 datestr = ' '
 timestamp = ' '
 groups = ()
 host = None
 ip = None
 ruleid = None
-level = None
+level = 1
 desc = None
 src = ' '
 user = ' '
 
 # Name output files same as the input file.
-jsonfile = infile + '.json'
-csvfile = infile + '.csv'
+jsonfile = 'short.log' + '.json'
 
-print('[*] reading %s') % infile
+# Only do this if -o csv was supplied
+#csvfile = filearg + '.csv'
+
+print('[*] reading %s') % filearg
 
 # ######### FUNCTIONS #########
+def usage():
+    # Print usage details
+    print 'print usage'
+    argparser.print_help()
+
+
+# Initialize variables
 def initvars ():
     # Initialize variables to None
-    datestr = ' '
-    timestamp = ' '
+    datestr = ''
+    timestamp = ''
     groups = ()
     host = None
     ip = None
     ruleid = None
-    level = None
+    level = 1
     desc = None
-    src = ' '
-    user = ' '
+    src = ''
+    user = ''
 
 
 # ########## MAIN PROGRAM #########
-try:
-    ifile = open(infile, 'r')
-except IOError:
-    print('[-] ERROR: unable to open file.')
+# try to get the filename string
 
-jsonfile = open(jsonfile, 'w')
-csvout = open(csvfile, 'w')
+#jsonfile = open(jsonfile, 'w')
+#csvout = open(csvfile, 'w')
 
 
 '''
@@ -104,7 +128,8 @@ dateline = re.compile(r"\d+ \w+ \d+ \d+:\d+:\d+")
 initvars()
 
 # Read each line and display is relative parts
-for line in ifile:
+#for line in str(ifile):
+for line in args.filename:
     linematched = 0  # TODO: determine if we really need this for anything.
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
@@ -167,23 +192,21 @@ for line in ifile:
                               'description': desc, 'source_ip': src,
                               'user': user}]
 
-                json.dump(alertdata, jsonfile, sort_keys=False, indent=4,
-                          separators=(',', ': '), encoding="utf-8")
+                #json.dump(alertdata, jsonfile, sort_keys=False, indent=4,
+                #          separators=(',', ': '), encoding="utf-8")
 
                 # output to csv file, one alert per line
                 # (TODO: make this optional)
 
-                csvout.write('timestamp: ' + str(timestamp) + ', groups: '
-                             + groupstr + ', host: ' + host + ', ip: ' + ip
-                             + ', rule_id: ' + ruleid + ', level: ' + level
-                             + ', desc: ' + desc + ', src: ' + src
-                             + ', user: ' + user + '\n')
+                #csvout.write('timestamp: ' + str(timestamp) + ', groups: '
+                #             + groupstr + ', host: ' + host + ', ip: ' + ip
+                #             + ', rule_id: ' + ruleid + ', level: ' + level
+                #             + ', desc: ' + desc + ', src: ' + src
+                #             + ', user: ' + user + '\n')
             else:
                 print '[*] alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
             initvars()
 
-
-ifile.close()
-csvout.close()
-jsonfile.close()
+#csvout.close()
+#jsonfile.close()
