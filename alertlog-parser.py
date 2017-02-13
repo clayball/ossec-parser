@@ -21,33 +21,42 @@ import argparse
 
 # ######### PARSE ARGS #########
 # TODO: implement: run on file or directory, min alert level, output csv
-# Usage: ./program.py -f file | -d directory [-l 8 -o csv|json]
+# Usage: ./program.py -f file | -d directory [-l 8 --csv]
 
 prog = os.path.basename(sys.argv[0])
 
 filearg = ''
 dirarg = ''
 levelmin = 0
+csvarg = ''
 
+# Create the argparser object
 argparser = argparse.ArgumentParser(description='Process command-line args.')
-#argparser.add_argument('-f', help='file to parse', dest='filename')
+
+# Add our arguments
+# - either -f or -d is required.
 argparser.add_argument('-f', type=argparse.FileType('r'), help='file to parse', dest='filename')
 argparser.add_argument('-d', help='directory containing alert logs', dest='directory')
 argparser.add_argument('-l', help='minimum alert level', dest='level', type=int, choices=xrange(1, 16))
+argparser.add_argument('-o', help='output to CSV format', dest='csvout', choices=['csv'])
 
 args = argparser.parse_args()
 
 if args.level:
-    print '[debug] level: %d' % levelmin
     levelmin = args.level
+    print '[debug] SET: level %d' % levelmin
 else:
     print '[debug] level not provided.'
 
 if args.filename:
     filearg = args.filename
-    print '[debug] filename: %s' % filearg
+    print '[debug] SET: filename %s' % filearg
 else:
     print '[debug] filename not provided.'
+
+if args.csvout:
+    print '[debug] SET: output to CSV'
+
 
 # ######### VARIABLES #########
 datestr = ' '
