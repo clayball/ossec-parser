@@ -27,35 +27,51 @@ prog = os.path.basename(sys.argv[0])
 
 filearg = ''
 dirarg = ''
+csvfile = ''
 levelmin = 0
 csvarg = ''
+c = ''
 
 # Create the argparser object
-argparser = argparse.ArgumentParser(description='Process command-line args.')
+argparser = argparse.ArgumentParser(description='Process command-line args.'
+                                                '  -f or -d is required.')
 
 # Add our arguments
 # - either -f or -d is required.
-argparser.add_argument('-f', type=argparse.FileType('r'), help='file to parse', dest='filename')
+#argparser.add_argument('-f', type=argparse.FileType('r'), help='file to parse', dest='filename')
+argparser.add_argument('-f', help='file to parse', dest='filename')
 argparser.add_argument('-d', help='directory containing alert logs', dest='directory')
-argparser.add_argument('-l', help='minimum alert level', dest='level', type=int, choices=xrange(1, 16))
+argparser.add_argument('-l', help='minimum alert level', dest='level', type=int, choices=xrange(2, 16))
 argparser.add_argument('-o', help='output to CSV format', dest='csvout', choices=['csv'])
 
 args = argparser.parse_args()
 
 if args.level:
     levelmin = args.level
-    print '[debug] SET: level %d' % levelmin
+    print '[SET] level %d' % levelmin
 else:
-    print '[debug] level not provided.'
+    print '[NOT SET] level not provided.'
 
 if args.filename:
     filearg = args.filename
-    print '[debug] SET: filename %s' % filearg
+    c = 1
+    print '[SET] filename %s' % filearg
 else:
-    print '[debug] filename not provided.'
+    print '[NOT SET] filename not provided.'
+
+if args.directory:
+    dirarg = args.directory
+    c = 1
+    print '[SET] direcory %s' % dirarg
 
 if args.csvout:
-    print '[debug] SET: output to CSV'
+    print '[SET] output to CSV'
+    # Only do this if -o csv was supplied
+    csvfile = filearg + '.csv'
+
+if c != 1:
+    argparser.print_help()
+    exit()
 
 
 # ######### VARIABLES #########
@@ -71,19 +87,16 @@ src = ' '
 user = ' '
 
 # Name output files same as the input file.
-jsonfile = 'short.log' + '.json'
-
-# Only do this if -o csv was supplied
-#csvfile = filearg + '.csv'
+jsonfile = filearg + '.json'
 
 print('[*] reading %s') % filearg
 
 # ######### FUNCTIONS #########
-def usage():
-    # Print usage details
-    print 'print usage'
-    argparser.print_help()
-
+# This usage function is overkill, just all the argparser print_help function
+#def usage():
+#    # Print usage details
+#    print 'print usage'
+#    argparser.print_help()
 
 # Initialize variables
 def initvars ():
@@ -101,10 +114,13 @@ def initvars ():
 
 
 # ########## MAIN PROGRAM #########
-# try to get the filename string
-
-#jsonfile = open(jsonfile, 'w')
-#csvout = open(csvfile, 'w')
+#
+# hopefully things are good by the time we get here
+# TODO: double check the above
+infile = open(filearg, 'r')
+outjson = open(jsonfile, 'w')
+if csvfile:
+    print '[debug] open csvfile for writing'
 
 
 '''
@@ -138,7 +154,7 @@ initvars()
 
 # Read each line and display is relative parts
 #for line in str(ifile):
-for line in args.filename:
+for line in infile:
     linematched = 0  # TODO: determine if we really need this for anything.
     # Test for matches. A line will have more than one matching RE.
     if alertline.match(line):
@@ -201,8 +217,8 @@ for line in args.filename:
                               'description': desc, 'source_ip': src,
                               'user': user}]
 
-                #json.dump(alertdata, jsonfile, sort_keys=False, indent=4,
-                #          separators=(',', ': '), encoding="utf-8")
+                json.dump(alertdata, outjson, sort_keys=False, indent=4,
+                          separators=(',', ': '), encoding="utf-8")
 
                 # output to csv file, one alert per line
                 # (TODO: make this optional)
@@ -218,4 +234,4 @@ for line in args.filename:
             initvars()
 
 #csvout.close()
-#jsonfile.close()
+outjson.close()
