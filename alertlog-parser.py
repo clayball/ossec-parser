@@ -121,6 +121,7 @@ infile = open(filearg, 'r')
 outjson = open(jsonfile, 'w')
 if csvfile:
     print '[debug] open csvfile for writing'
+    outcsv = open(csvfile, 'w')
 
 
 '''
@@ -223,15 +224,18 @@ for line in infile:
                 # output to csv file, one alert per line
                 # (TODO: make this optional)
 
-                #csvout.write('timestamp: ' + str(timestamp) + ', groups: '
-                #             + groupstr + ', host: ' + host + ', ip: ' + ip
-                #             + ', rule_id: ' + ruleid + ', level: ' + level
-                #             + ', desc: ' + desc + ', src: ' + src
-                #             + ', user: ' + user + '\n')
+                if csvfile:
+                    outcsv.write('timestamp: ' + str(timestamp) + ', groups: '
+                                 + groupstr + ', host: ' + host + ', ip: ' + ip
+                                 + ', rule_id: ' + ruleid + ', level: ' + level
+                                 + ', desc: ' + desc + ', src: ' + src
+                                 + ', user: ' + user + '\n')
             else:
                 print '[*] alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
             initvars()
 
-#csvout.close()
+if csvfile:
+    outcsv.close()
+
 outjson.close()
