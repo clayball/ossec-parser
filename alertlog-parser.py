@@ -38,7 +38,6 @@ argparser = argparse.ArgumentParser(description='Process command-line args.'
 
 # Add our arguments
 # - either -f or -d is required.
-#argparser.add_argument('-f', type=argparse.FileType('r'), help='file to parse', dest='filename')
 argparser.add_argument('-f', help='file to parse', dest='filename')
 argparser.add_argument('-d', help='directory containing alert logs', dest='directory')
 argparser.add_argument('-l', help='minimum alert level', dest='level', type=int, choices=xrange(2, 16))
@@ -231,7 +230,7 @@ for line in infile:
                                  + ', desc: ' + desc + ', src: ' + src
                                  + ', user: ' + user + '\n')
             else:
-                print '[*] alert level <= %d: %s' % (int(levelmin), level)
+                print '[*] DROP: alert level <= %d: %s' % (int(levelmin), level)
             endalert = 1
             initvars()
 
